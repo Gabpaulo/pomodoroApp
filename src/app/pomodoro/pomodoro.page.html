@@ -1,0 +1,23 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Pomodoro Timer</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <!-- Real-time Clock -->
+  <div class="clock">{{ now | date:'hh:mm:ss a' }}</div>
+
+  <!-- Countdown Display -->
+  <div class="countdown">
+    {{ minutes }}:{{ seconds < 10 ? '0' + seconds : seconds }}
+  </div>
+
+  <!-- Start / Status Button -->
+  <ion-button expand="block" (click)="startCycle()" [disabled]="running">
+    {{ running ? (isWork ? 'Working…' : 'On Break…') : 'Start Pomodoro' }}
+  </ion-button>
+</ion-content>
