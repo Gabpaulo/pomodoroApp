@@ -5,9 +5,15 @@
 </ion-header>
 
 <ion-content class="ion-padding">
+  <!-- Pomodoro Navigation -->
+  <ion-button expand="block" routerLink="/pomodoro">
+    Go to Pomodoro Timer
+  </ion-button>
+
   <div>
     <p>Current Time in Default Timezone: {{ currentTime }}</p>
   </div>
+
   <ion-button expand="block" (click)="checkPermissions()">Check Permissions</ion-button>
   <ion-button expand="block" (click)="requestPermissions()">Request Permissions</ion-button>
   <ion-button expand="block" (click)="createNotification()">Create Notification</ion-button>
