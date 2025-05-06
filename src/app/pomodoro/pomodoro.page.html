@@ -3,21 +3,50 @@
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/home"></ion-back-button>
     </ion-buttons>
-    <ion-title>Pomodoro Timer</ion-title>
+    <ion-title>Pomodoro</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
-  <!-- Real-time Clock -->
-  <div class="clock">{{ now | date:'hh:mm:ss a' }}</div>
-
-  <!-- Countdown Display -->
-  <div class="countdown">
-    {{ minutes }}:{{ seconds < 10 ? '0' + seconds : seconds }}
+  <div class="pomodoro-container">
+    <!-- Real-time Clock -->
+    <div class="clock">{{ now | date:'hh:mm:ss a' }}</div>
+    
+    <!-- Timer Circle -->
+    <div class="timer-circle" [ngClass]="{ 'work-mode': isWork, 'break-mode': !isWork }">
+      <!-- Mode Indicator -->
+      <div class="status">
+        {{ isWork ? 'Work Time' : 'Break Time' }}
+      </div>
+      
+      <!-- Countdown Display -->
+      <div class="countdown">{{ seconds }}s</div>
+      
+      <!-- Progress Circle (visual indicator) -->
+      <svg class="progress-ring" width="260" height="260">
+        <circle
+          class="progress-ring__circle"
+          [ngClass]="{ 'work': isWork, 'break': !isWork }"
+          stroke-width="8"
+          fill="transparent"
+          r="120"
+          cx="130"
+          cy="130"
+        />
+      </svg>
+    </div>
+    
+    <!-- Start / Status Button -->
+    <ion-button
+      expand="block"
+      (click)="startCycle()"
+      [disabled]="running"
+      [ngClass]="{ 'work-btn': isWork, 'break-btn': !isWork }"
+    >
+      <ion-icon [name]="running ? 'timer-outline' : 'play-outline'" slot="start"></ion-icon>
+      {{ running
+        ? (isWork ? 'Working…' : 'On Break…')
+        : 'Start' }}
+    </ion-button>
   </div>
-
-  <!-- Start / Status Button -->
-  <ion-button expand="block" (click)="startCycle()" [disabled]="running">
-    {{ running ? (isWork ? 'Working…' : 'On Break…') : 'Start Pomodoro' }}
-  </ion-button>
 </ion-content>

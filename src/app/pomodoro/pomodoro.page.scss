@@ -1,11 +1,88 @@
-.clock {
-    font-size: 1.5rem;
-    text-align: center;
+.pomodoro-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+
+  .clock {
+    font-size: 1.2rem;
     margin-bottom: 1rem;
+    color: #666;
   }
-  .countdown {
-    font-size: 3rem;
-    text-align: center;
-    margin: 2rem 0;
+
+  .timer-circle {
+    position: relative;
+    width: 260px;
+    height: 260px;
+    margin-bottom: 2rem;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #f4f4f4;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    transition: background-color 0.5s ease;
+
+    &.work-mode {
+      background-color: #e3f2fd; // light blue
+    }
+
+    &.break-mode {
+      background-color: #fce4ec; // light pink
+    }
+
+    .status {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #444;
+      margin-bottom: 0.5rem;
+    }
+
+    .countdown {
+      font-size: 3rem;
+      font-weight: bold;
+      color: #222;
+    }
+
+    .progress-ring {
+      position: absolute;
+      top: 0;
+      left: 0;
+      transform: rotate(-90deg);
+      transition: stroke-dashoffset 0.5s linear;
+
+      &__circle {
+        stroke: #64b5f6; // blue for work
+        stroke-dasharray: 754; // approx. circumference (2πr = 2*π*120)
+        stroke-dashoffset: 0;
+        transition: stroke 0.3s ease;
+        
+        &.work {
+          stroke: #1976d2;
+        }
+
+        &.break {
+          stroke: #d81b60;
+        }
+      }
+    }
   }
-  
+
+  ion-button {
+    margin-top: 1rem;
+    transition: background-color 0.3s ease;
+
+    &.work-btn {
+      --background: #1976d2;
+      --color: #fff;
+    }
+
+    &.break-btn {
+      --background: #d81b60;
+      --color: #fff;
+    }
+  }
+}

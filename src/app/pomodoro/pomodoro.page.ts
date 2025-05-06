@@ -1,6 +1,7 @@
 import { Component, NgZone, OnInit } from '@angular/core';
-import { LocalNotifications } from '@capacitor/local-notifications';
+import { NotificationService } from '../services/notification.service';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { Platform } from '@ionic/angular';
 
 @Component({
   selector: 'app-pomodoro',
@@ -10,88 +11,88 @@ import { Haptics, ImpactStyle } from '@capacitor/haptics';
 })
 export class PomodoroPage implements OnInit {
   now = new Date();
-  timerId: any;
+  timerId?: number;
   running = false;
   isWork = true;
-  minutes = 25;
-  seconds = 0;
+  seconds = 10;                    // 10s test
+  private alertAudio = new Audio('assets/sounds/notif.wav');
+  readonly TEST_DURATION = 10;
 
-  constructor(private zone: NgZone) {}
+  constructor(
+    private zone: NgZone,
+    private platform: Platform,
+    private notificationService: NotificationService
+  ) {}
 
-  async ngOnInit() {
-    // Update the clock every second
+  ngOnInit() {
+    // keep the clock updated
     setInterval(() => this.zone.run(() => this.now = new Date()), 1000);
-    // Request notification permission once
-    await LocalNotifications.requestPermissions();
+
+    // wait for Capacitor to be ready
+    this.platform.ready().then(() => {
+      this.notificationService.requestNotificationPermissions();
+      this.notificationService.listenForIncomingNotifications();
+    });
   }
 
-  async startCycle() {
+  startCycle() {
     this.running = true;
     this.isWork = true;
-    this.minutes = 25;
-    this.seconds = 0;
+    this.seconds = this.TEST_DURATION;
 
-    // Schedule the end-of-work notification
-    await this.scheduleNotification(
-      'Work session ended!',
-      'Time for a 5-minute break.'
-    );
-
+    // start the countdown immediately
     this.tick();
+
+    // schedule the native notification (fire-and-forget)
+    this.notificationService
+      .scheduleNotification({
+        id: Date.now(),
+        title: 'Work session ended!',
+        body: 'Time for a quick break.',
+        schedule: { at: new Date(Date.now() + this.TEST_DURATION * 1000) },
+        sound: 'notif',
+      })
+      .catch(err => console.warn('Notif failed', err));
   }
 
   private tick() {
-    this.timerId = setInterval(() => {
-      if (this.seconds === 0) {
-        if (this.minutes === 0) {
-          clearInterval(this.timerId);
+    // clear any old timer
+    if (this.timerId) clearInterval(this.timerId);
+
+    this.timerId = window.setInterval(() => {
+      this.zone.run(() => {
+        if (this.seconds <= 0) {
+          clearInterval(this.timerId!);
           this.onTimerComplete();
-          return;
+        } else {
+          this.seconds--;
         }
-        this.minutes--;
-        this.seconds = 59;
-      } else {
-        this.seconds--;
-      }
+      });
     }, 1000);
   }
 
-  private async onTimerComplete() {
-    // Haptic feedback
+  private onTimerComplete() {
+    this.alertAudio.play().catch(err => console.warn('Audio play failed:', err));
     Haptics.impact({ style: ImpactStyle.Medium });
 
     if (this.isWork) {
-      // Switch to break
+      // switch to break
       this.isWork = false;
-      this.minutes = 5;
-      this.seconds = 0;
-
-      // Schedule the end-of-break notification
-      await this.scheduleNotification(
-        'Break ended!',
-        'Ready for another Pomodoro?'
-      );
-
+      this.seconds = this.TEST_DURATION;
       this.tick();
+
+      this.notificationService
+        .scheduleNotification({
+          id: Date.now(),
+          title: 'Break ended!',
+          body: 'Ready for another round?',
+          schedule: { at: new Date(Date.now() + this.TEST_DURATION * 1000) },
+          sound: 'notif',
+        })
+        .catch(err => console.warn('Notif failed', err));
     } else {
-      // Cycle complete
+      // cycle done
       this.running = false;
     }
-  }
-
-  private async scheduleNotification(title: string, body: string) {
-    await LocalNotifications.schedule({
-      notifications: [{
-        id: Date.now(),
-        title,
-        body,
-        schedule: {
-          at: new Date(
-            Date.now() + (this.isWork ? 25 : 5) * 60 * 1000
-          )
-        },
-        sound: 'default'
-      }]
-    });
   }
 }
